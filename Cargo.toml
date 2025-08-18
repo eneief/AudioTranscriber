@@ -1,0 +1,11 @@
+[package]
+name = "AudioTranscriber"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.99"
+cpal = "0.16.0"
+crossbeam-channel = "0.5.15"
+ctrlc = "3.4.7"
+hound = "3.5.1"
