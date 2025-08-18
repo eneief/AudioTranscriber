@@ -21,3 +21,5 @@ target
 #.idea/
 /target
 *.wav
+*.txt
+.env

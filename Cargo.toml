@@ -2,6 +2,7 @@
 name = "AudioTranscriber"
 version = "0.1.0"
 edition = "2024"
+default-run = "AudioTranscriber"
 
 [dependencies]
 anyhow = "1.0.99"
@@ -9,3 +10,11 @@ cpal = "0.16.0"
 crossbeam-channel = "0.5.15"
 ctrlc = "3.4.7"
 hound = "3.5.1"
+
+# reqwest = { version = "0.12", features = ["blocking", "json"] }
+# serde = { version = "1", features = ["derive"] }
+# serde_json = "1"
+
+dotenvy = "0.15"
+deepgram = "0.7.0"
+tokio = { version = "1.47.1", features = ["rt-multi-thread", "macros"] }

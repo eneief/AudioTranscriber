@@ -7,8 +7,10 @@ use std::sync::{
     atomic::{AtomicBool, Ordering},
 };
 use std::time::Duration;
+mod deepgram_sdk;
 
 fn main() -> Result<()> {
+    let _ = dotenvy::dotenv();
     let devices = audio::list_devices()?;
 
     println!("---------------------------------------------------");
@@ -41,20 +43,20 @@ fn main() -> Result<()> {
         rec.output_channels(),
     );
 
-    let mut sink = audio::WavSink::create("capture.wav", rec.sample_rate(), rec.output_channels())?;
+    let mut sink = audio::WavSink::create("results/capture.wav", rec.sample_rate(), rec.output_channels())?;
 
     let stop = Arc::new(AtomicBool::new(false));
     {
         let stop = stop.clone();
         // ctrlc::set_handler(move || stop.store(true, Ordering::SeqCst))?;
         ctrlc::set_handler(move || {
-            eprintln!("\n\nStopping…");
+            eprintln!("\n\nStopping...");
             stop.store(true, Ordering::SeqCst);
         })?;
     }
 
     rec.start()?;
-    eprintln!("\n\nRecording… \n\n\tpress Ctrl-C to stop.");
+    eprintln!("\n\nRecording... \n\n\tpress Ctrl-C to stop.");
     // let mut total = 0usize;
     while !stop.load(Ordering::SeqCst) {
         if let Some(buf) = rec.recv_chunk_timeout(Duration::from_millis(100)) {
@@ -75,7 +77,20 @@ fn main() -> Result<()> {
     sink.finalize()?;
     eprintln!("Saved capture.wav");
 
-    // Deepgram stuff will go here
+    if let Ok(key) = std::env::var("DEEPGRAM_API_KEY") {
+    eprintln!("Transcribing with Deepgram...\n\n");
+    let rt = tokio::runtime::Runtime::new()?;
+    match rt.block_on(deepgram_sdk::transcribe_file_sdk("results/capture.wav", &key)) {
+        Ok(text) => {
+            std::fs::write("results/transcript.txt", &text)?;
+            println!("\nTranscript:\n{}\n", text);
+            eprintln!("Saved transcript.txt");
+        }
+        Err(e) => eprintln!("Transcription failed: {e}"),
+    }
+} else {
+    eprintln!("DEEPGRAM_API_KEY not set; skipping transcription.");
+}
 
     Ok(())
 }
