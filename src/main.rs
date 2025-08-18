@@ -43,7 +43,11 @@ fn main() -> Result<()> {
         rec.output_channels(),
     );
 
-    let mut sink = audio::WavSink::create("results/capture.wav", rec.sample_rate(), rec.output_channels())?;
+    let mut sink = audio::WavSink::create(
+        "results/capture.wav",
+        rec.sample_rate(),
+        rec.output_channels(),
+    )?;
 
     let stop = Arc::new(AtomicBool::new(false));
     {
@@ -78,19 +82,22 @@ fn main() -> Result<()> {
     eprintln!("Saved capture.wav");
 
     if let Ok(key) = std::env::var("DEEPGRAM_API_KEY") {
-    eprintln!("Transcribing with Deepgram...\n\n");
-    let rt = tokio::runtime::Runtime::new()?;
-    match rt.block_on(deepgram_sdk::transcribe_file_sdk("results/capture.wav", &key)) {
-        Ok(text) => {
-            std::fs::write("results/transcript.txt", &text)?;
-            println!("\nTranscript:\n{}\n", text);
-            eprintln!("Saved transcript.txt");
+        eprintln!("Transcribing with Deepgram...\n\n");
+        let rt = tokio::runtime::Runtime::new()?;
+        match rt.block_on(deepgram_sdk::transcribe_file_sdk(
+            "results/capture.wav",
+            &key,
+        )) {
+            Ok(text) => {
+                std::fs::write("results/transcript.txt", &text)?;
+                println!("\nTranscript:\n{}\n", text);
+                eprintln!("Saved transcript.txt");
+            }
+            Err(e) => eprintln!("Transcription failed: {e}"),
         }
-        Err(e) => eprintln!("Transcription failed: {e}"),
+    } else {
+        eprintln!("DEEPGRAM_API_KEY not set; skipping transcription.");
     }
-} else {
-    eprintln!("DEEPGRAM_API_KEY not set; skipping transcription.");
-}
 
     Ok(())
 }

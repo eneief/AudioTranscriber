@@ -1,10 +1,10 @@
 use anyhow::Result;
 use deepgram::{
+    Deepgram,
     common::{
         audio_source::AudioSource,
-        options::{Language, Options, Model},
+        options::{Language, Model, Options},
     },
-    Deepgram,
 };
 use tokio::fs::File;
 
@@ -27,8 +27,8 @@ pub async fn transcribe_file_sdk(path: &str, api_key: &str) -> Result<String> {
     let text = resp
         .results
         .channels
-        .get(0)
-        .and_then(|c| c.alternatives.get(0))
+        .first()
+        .and_then(|c| c.alternatives.first())
         .map(|a| a.transcript.clone())
         .unwrap_or_default();
 
